@@ -23,12 +23,12 @@ module.exports = function (RED) {
     node.on('input', async function (msg) {
       try {
         node.status({fill: "green", shape: "dot", text: ""});
-        const [sitemap, schedule] = await Promise.all([
-          mysolix.getSitehomepage(),
+        const [scenInfo, schedule] = await Promise.all([
+          mysolix.getScenInfo(),
           mysolix.getSchedule(),
           setSchedule(msg.payload),
         ]);
-        node.send([{payload: sitemap}, {payload: schedule}]);
+        node.send([{payload: scenInfo}, {payload: schedule}]);
       } catch (e) {
         console.log(e);
         node.status({fill: "red", shape: "dot", text: "Failed:" + e});

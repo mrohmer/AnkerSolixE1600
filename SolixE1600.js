@@ -1,4 +1,4 @@
-const API = require("./SolixAPI.js");
+const SolixApi = require("./SolixAPI.js");
 
 class SolixE1600 {
 
@@ -24,7 +24,7 @@ class SolixE1600 {
       throw new Error("No password provided");
     }
     this.config = config;
-    this.api = new API.SolixApi(config);
+    this.api = new SolixApi(config);
   }
 
   /**
@@ -59,29 +59,28 @@ class SolixE1600 {
   /**
    * Retrieves the site ID for a given site.
    *
-   * @param {string|number} site - The site ID or name.
-   * @return {string} The site ID.
+   * @param {string|number} siteId - The site ID or name.
+   * @return {Promise<string>} The site ID.
    */
-  async _getSiteId(site) {
+  async _getSiteId(siteId) {
     await this._init();
+
     const sites = await this.getSites();
-    if (typeof site == 'string') {
-      for (let i = 0; i < sites.length; i++) {
-        if (site[i].site_id === site) {
-          site = i;
-          break;
-        }
-      }
-    }
-    let site_idx = site;
-    if ((typeof site_idx == 'undefined') || (site_idx == null) || (isNaN(site_idx))) {
-      site_idx = 0;
+    if (!sites.length) {
+      return undefined;
     }
 
-    if (sites.length < site_idx + 1) {
-      throw new Error("site out of range. Expected < " + (sites.length - 1) + " or valid site_id");
+    if (typeof siteId == 'string') {
+      const hasSiteId = sites.some(s => s.site_id === siteId);
+
+      if (!hasSiteId) {
+        throw new Error(`could not find site with id ${siteId}`)
+      }
+
+      return siteId;
     }
-    return sites[site_idx].site_id;
+
+    return sites[0].site_id;
   }
 
   /**
@@ -96,41 +95,23 @@ class SolixE1600 {
   /**
    * Retrieves the list of sites.
    *
-   * @return {Array} The list of sites.
+   * @return {Promise<Site[]>} The list of sites.
    */
   async getSites() {
-    const sites = await this.getSitehomepage();
-    return sites.site_list;
-  }
-
-  /**
-   * Retrieves the site homepage from the API.
-   *
-   * @return {Promise} A Promise that resolves to the site homepage (account overview) data.
-   */
-  async getSitehomepage() {
-    await this._init();
-    let sites = await this.apiSession.siteHomepage();
-    if (typeof sites == 'undefined') {
-      await new Promise(r => setTimeout(r, 1000));
-      sites = await this.apiSession.siteHomepage();
-      if (typeof sites == 'undefined') {
-        throw new Error("Unable to retrieve Sitehomepage");
-      }
-    }
-    return sites.data;
+    const sites = await this.apiSession.getSiteList();
+    return sites.data?.site_list;
   }
 
   /**
    * Retrieves the schedule for the specified site.
    * sample: `{"ranges":[{"id":0,"start_time":"00:00","end_time":"01:00","turn_on":false,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":200,"number":1}]},{"id":0,"start_time":"01:00","end_time":"02:00","turn_on":true,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":350,"number":1}]},{"id":0,"start_time":"02:00","end_time":"24:00","turn_on":false,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":200,"number":1}]}],"min_load":150,"max_load":800,"step":50}`
    *
-   * @param {string} site - The site identifier or site index. If not provided, the first site is used.
+   * @param {string} siteId - The site identifier or site index. If not provided, the first site is used.
    * @return {Promise<any>} - The schedule data.
    */
-  async getSchedule(site) {
+  async getSchedule(siteId = undefined) {
     const device = {
-      siteId: await this._getSiteId(site),
+      siteId: await this._getSiteId(siteId),
       paramType: "4"
     }
 
@@ -138,17 +119,30 @@ class SolixE1600 {
     return deviceParams.data.param_data;
   }
 
+
+  /**
+   * Retrieves the scen info for the specified site.
+   * *
+   * @param {string} siteId - The site identifier or site index. If not provided, the first site is used.
+   * @return {Promise<ScenInfo>} - The schedule data.
+   */
+  async getScenInfo(siteId = undefined) {
+    siteId = await this._getSiteId(siteId);
+    const deviceParams = await this.apiSession.scenInfo(await this._getSiteId(siteId));
+    return deviceParams.data;
+  }
+
   /**
    * Sets the schedule for a specific site.
    * sample: `{"ranges":[{"id":0,"start_time":"00:00","end_time":"01:00","turn_on":false,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":200,"number":1}]},{"id":0,"start_time":"01:00","end_time":"02:00","turn_on":true,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":350,"number":1}]},{"id":0,"start_time":"02:00","end_time":"24:00","turn_on":false,"appliance_loads":[{"id":0,"name":"Benutzerdefiniert","power":200,"number":1}]}],"min_load":150,"max_load":800,"step":50}`
    *
    * @param {Object} schedule - The schedule to set.
-   * @param {string} site - The site for which the schedule should be set. If not provided, the first site is used.
+   * @param {string} siteId - The site for which the schedule should be set. If not provided, the first site is used.
    * @return {Promise<any>} - A promise that resolves with the response from setting the schedule.
    */
-  async setSchedule(schedule, site) {
+  async setSchedule(schedule, siteId) {
     const deviceN = {
-      siteId: await this._getSiteId(site),
+      siteId: await this._getSiteId(siteId),
       paramType: "4",
       cmd: 17,
       paramData: schedule
