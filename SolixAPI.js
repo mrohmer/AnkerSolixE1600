@@ -115,6 +115,11 @@ const { ECDH, createCipheriv, createECDH, createHash } = require("crypto");
  */
 
 /**
+ * @typedef {Object} SiteListResponse
+ * @property {Site[]} site_list
+ */
+
+/**
  * @typedef {Object} Solarbank
  * @property {string} device_pn
  * @property {string} device_sn
@@ -328,7 +333,7 @@ class SolixApi {
       siteHomepage: async () => authFetch("/power_service/v1/site/get_site_homepage", {}),
 
       /**
-       * @returns {Promise<ResultResponse<Site[]>>}
+       * @returns {Promise<ResultResponse<SiteListResponse>>}
        */
       getSiteList: async () => authFetch("/power_service/v1/site/get_site_list", {}),
 
