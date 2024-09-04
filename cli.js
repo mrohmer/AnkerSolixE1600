@@ -1,46 +1,66 @@
 /*
    Sample usage of SolixE1600 class
-   will write schedule.json and homepage.json to the current directory
+   will write schedule.json and sceninfo.json to the current directory
    or pushes schedule to device if json file is specified as first parameter
 */
-const fs = require("fs");
+const fs = require("fs/promises");
 
 const SolixE1600 = require("./SolixE1600.js");
 
-const app = async () => {
-  let configuration = {}
-  if (typeof process.env.ANKER_USERNAME == 'undefined') {
-    console.log("SET ANKER_USERNAME=your@mail.com");
-    process.exit(1);
-  } else {
-    configuration.username = process.env.ANKER_USERNAME;
-  }
-  if (typeof process.env.ANKER_PASSWORD == 'undefined') {
-    console.log("SET ANKER_PASSWORD=yourAppPassword");
-    process.exit(2);
-  } else {
-    configuration.password = process.env.ANKER_PASSWORD;
-  }
-  if (typeof process.env.ANKER_COUNTRY == 'undefined') {
-    console.log("SET ANKER_COUNTRY=2-LETT-CODE");
-    process.exit(3);
-  } else {
-    configuration.country = process.env.ANKER_COUNTRY;
-  }
-  const mysolix = new SolixE1600(configuration);
-  console.log(process.argv);
-  if (typeof process.argv[2] !== 'undefined') {
-    console.log("Writing new Schedule");
-    const schedule = JSON.parse(fs.readFileSync(process.argv[2]));
-    await mysolix.setSchedule(schedule);
-  } else {
-    const [sceninfo, schedule] = await Promise.all([
-      mysolix.getScenInfo(),
-      mysolix.getSchedule(),
-    ]);
-    fs.writeFileSync("sceninfo.json", JSON.stringify(sceninfo, null, 2));
-    fs.writeFileSync("schedule.json", JSON.stringify(schedule, null, 2));
+const assertEnv = (envName, message) => {
+  if (typeof process.env[envName] == 'undefined') {
+    throw new Error(message);
   }
 }
 
-app();
+const handleScheduleUpdate = async (mysolix, schedulePath) => {
+  console.log("Writing new Schedule");
+  const content = await fs.readFile(schedulePath);
+
+  if (!content) {
+    console.log("could not read schedule file");
+    process.exit(1);
+    return;
+  }
+
+  const schedule = JSON.parse(content);
+  await mysolix.setSchedule(schedule);
+}
+
+const writeFile = (path, data) => fs.writeFile(path, JSON.stringify(data, null, 2))
+const readData = async () => {
+  const [sceninfo, schedule] = await Promise.all([
+    mysolix.getScenInfo(),
+    mysolix.getSchedule(),
+  ]);
+  await Promise.all([
+    writeFile("sceninfo.json", sceninfo),
+    writeFile("schedule.json", schedule),
+  ]);
+}
+
+const app = async () => {
+  assertEnv("ANKER_USERNAME", "SET ANKER_USERNAME=your@mail.com");
+  assertEnv("ANKER_PASSWORD", "SET ANKER_PASSWORD=yourAppPassword");
+  assertEnv("ANKER_COUNTRY", "SET ANKER_COUNTRY=2-LETT-CODE");
+
+  const mysolix = new SolixE1600({
+    username: process.env.ANKER_USERNAME,
+    password: process.env.ANKER_PASSWORD,
+    country: process.env.ANKER_COUNTRY,
+  });
+  console.log(process.argv);
+
+  if (typeof process.argv[2] !== 'undefined') {
+    await handleScheduleUpdate(mysolix, process.argv[2]);
+    return undefined;
+  }
+
+  await readData();
+}
+
+app()
+  .catch(err => {
+    console.log(err?.message ?? err);
+    process.exit(1);
+  })
