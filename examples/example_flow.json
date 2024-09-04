@@ -1,6 +1,6 @@
 [
     {
-        "id": "68495a0f9b0f0af2",
+        "id": "712010014573c44c",
         "type": "tab",
         "label": "Anker Solix E1600 Lib",
         "disabled": false,
@@ -8,29 +8,53 @@
         "env": []
     },
     {
-        "id": "ac86e1db88f5b4d0",
-        "type": "E1600",
-        "z": "68495a0f9b0f0af2",
-        "name": "",
-        "username": "username@domain.com",
-        "password": "Password",
-        "country": "DE",
-        "x": 510,
-        "y": 240,
-        "wires": [
-            [
-                "390f337fbfc40ad9"
-            ],
-            [
-                "89ec8c48c5a440c5",
-                "8942b3ae1eddcca6"
-            ]
-        ]
+        "id": "7297f601029c1f8c",
+        "type": "group",
+        "z": "712010014573c44c",
+        "name": "Read SoC",
+        "style": {
+            "fill": "#ffffff",
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "14c69744679aeb98",
+            "c3b632e0659d99d1",
+            "ee48fce5b48abd3a",
+            "b1f8b3c67756c232",
+            "e9e96ab50996fdd2"
+        ],
+        "x": 34,
+        "y": 99,
+        "w": 872,
+        "h": 82
     },
     {
-        "id": "d6bb748fa40138c0",
+        "id": "14999c7712759782",
+        "type": "group",
+        "z": "712010014573c44c",
+        "name": "Set Schedule",
+        "style": {
+            "fill": "#ffffff",
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "a3326a502ac2ae75",
+            "51176e830968e8ed",
+            "bc045f150b4717b4",
+            "d770084120b93d0e"
+        ],
+        "x": 94,
+        "y": 239,
+        "w": 772,
+        "h": 122
+    },
+    {
+        "id": "14c69744679aeb98",
         "type": "inject",
-        "z": "68495a0f9b0f0af2",
+        "z": "712010014573c44c",
+        "g": "7297f601029c1f8c",
         "name": "",
         "props": [
             {
@@ -49,17 +73,18 @@
         "payload": "",
         "payloadType": "date",
         "x": 140,
-        "y": 180,
+        "y": 140,
         "wires": [
             [
-                "ac86e1db88f5b4d0"
+                "ee48fce5b48abd3a"
             ]
         ]
     },
     {
-        "id": "390f337fbfc40ad9",
+        "id": "c3b632e0659d99d1",
         "type": "debug",
-        "z": "68495a0f9b0f0af2",
+        "z": "712010014573c44c",
+        "g": "7297f601029c1f8c",
         "name": "SoC (%)",
         "active": true,
         "tosidebar": true,
@@ -70,13 +95,14 @@
         "statusVal": "payload.solabank_list[0].battery_power",
         "statusType": "auto",
         "x": 800,
-        "y": 160,
+        "y": 140,
         "wires": []
     },
     {
-        "id": "89ec8c48c5a440c5",
+        "id": "a3326a502ac2ae75",
         "type": "debug",
-        "z": "68495a0f9b0f0af2",
+        "z": "712010014573c44c",
+        "g": "14999c7712759782",
         "name": "Schedule",
         "active": true,
         "tosidebar": true,
@@ -86,32 +112,15 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 840,
-        "y": 240,
+        "x": 760,
+        "y": 300,
         "wires": []
     },
     {
-        "id": "8942b3ae1eddcca6",
-        "type": "function",
-        "z": "68495a0f9b0f0af2",
-        "name": "function 1",
-        "func": "\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 820,
-        "y": 360,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "f93d5f09d10406ee",
+        "id": "51176e830968e8ed",
         "type": "inject",
-        "z": "68495a0f9b0f0af2",
+        "z": "712010014573c44c",
+        "g": "14999c7712759782",
         "name": "Generic Unload (150W/24h)",
         "props": [
             {
@@ -129,18 +138,19 @@
         "topic": "",
         "payload": "{\"ranges\":[{\"id\":0,\"start_time\":\"00:00\",\"end_time\":\"24:00\",\"turn_on\":true,\"appliance_loads\":[{\"id\":0,\"name\":\"Generic Load\",\"power\":150,\"number\":1}]}],\"min_load\":150,\"max_load\":800,\"step\":50}",
         "payloadType": "json",
-        "x": 180,
-        "y": 240,
+        "x": 300,
+        "y": 280,
         "wires": [
             [
-                "ac86e1db88f5b4d0"
+                "d770084120b93d0e"
             ]
         ]
     },
     {
-        "id": "c8ae762758caebef",
+        "id": "bc045f150b4717b4",
         "type": "inject",
-        "z": "68495a0f9b0f0af2",
+        "z": "712010014573c44c",
+        "g": "14999c7712759782",
         "name": "Generic Disable Unload(150W/24h)",
         "props": [
             {
@@ -158,12 +168,102 @@
         "topic": "",
         "payload": "{\"ranges\":[{\"id\":0,\"start_time\":\"00:00\",\"end_time\":\"24:00\",\"turn_on\":false,\"appliance_loads\":[{\"id\":0,\"name\":\"Generic Load\",\"power\":150,\"number\":1}]}],\"min_load\":150,\"max_load\":800,\"step\":50}",
         "payloadType": "json",
-        "x": 200,
+        "x": 280,
         "y": 320,
         "wires": [
             [
-                "ac86e1db88f5b4d0"
+                "d770084120b93d0e"
             ]
         ]
+    },
+    {
+        "id": "d770084120b93d0e",
+        "type": "Solix | Set Schedule",
+        "z": "712010014573c44c",
+        "g": "14999c7712759782",
+        "name": "",
+        "api": "21035b43c279f085",
+        "x": 570,
+        "y": 300,
+        "wires": [
+            [
+                "a3326a502ac2ae75"
+            ]
+        ]
+    },
+    {
+        "id": "ee48fce5b48abd3a",
+        "type": "Solix | Read Scen Info",
+        "z": "712010014573c44c",
+        "g": "7297f601029c1f8c",
+        "name": "",
+        "api": "21035b43c279f085",
+        "x": 320,
+        "y": 140,
+        "wires": [
+            [
+                "b1f8b3c67756c232"
+            ]
+        ]
+    },
+    {
+        "id": "b1f8b3c67756c232",
+        "type": "switch",
+        "z": "712010014573c44c",
+        "g": "7297f601029c1f8c",
+        "name": "check",
+        "property": "payload.solarbank_info.solarbank_list[0].battery_power",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 490,
+        "y": 140,
+        "wires": [
+            [
+                "e9e96ab50996fdd2"
+            ]
+        ]
+    },
+    {
+        "id": "e9e96ab50996fdd2",
+        "type": "change",
+        "z": "712010014573c44c",
+        "g": "7297f601029c1f8c",
+        "name": "Extract SoC (%)",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.solarbank_info.solarbank_list[0].battery_power",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 640,
+        "y": 140,
+        "wires": [
+            [
+                "c3b632e0659d99d1"
+            ]
+        ]
+    },
+    {
+        "id": "21035b43c279f085",
+        "type": "SolixApi",
+        "name": "Demo",
+        "username": "user@name.de",
+        "password": "pwd",
+        "country": "DE"
     }
 ]
