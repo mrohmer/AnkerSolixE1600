@@ -12,7 +12,7 @@ module.exports = function (RED) {
     const mysolix = this.api.mysolix;
 
     this.api.init()
-      .then(() => this.status({fill: "green", shape: "dot", text: ""}))
+      .then(() => this.status({fill: "blue", shape: "ring", text: "intialized"}))
       .catch((e) => this.status({fill: "red", shape: "dot", text: `Login failed: ${e}`}));
 
     this.on('input', async () => {
