@@ -65,11 +65,9 @@ class SolixE1600 {
    *
    * @return {Promise<void>}
    */
-  async #init() {
+  async init() {
     this.config.loginCredentials = await this.#getLoginCredentials();
     this.apiSession = this.#getApiSession();
-
-
   }
 
   /**
@@ -79,7 +77,7 @@ class SolixE1600 {
    * @return {Promise<string>} The site ID.
    */
   async #getSiteId(siteId) {
-    await this.#init();
+    await this.init();
 
     const sites = await this.getSites();
     if (!sites.length) {
@@ -114,7 +112,7 @@ class SolixE1600 {
    * @return {Promise<Site[]>} The list of sites.
    */
   async getSites() {
-    await this.#init();
+    await this.init();
     const sites = await this.apiSession.getSiteList();
     return sites.data?.site_list;
   }
@@ -127,7 +125,7 @@ class SolixE1600 {
    * @return {Promise<any>} - The schedule data.
    */
   async getSchedule(siteId = undefined) {
-    await this.#init();
+    await this.init();
     const device = {
       siteId: siteId ?? await this.#getSiteId(siteId),
       paramType: "4"
@@ -145,7 +143,7 @@ class SolixE1600 {
    * @return {Promise<ScenInfo>} - The schedule data.
    */
   async getScenInfo(siteId = undefined) {
-    await this.#init();
+    await this.init();
     const deviceParams = await this.apiSession.scenInfo(siteId ?? await this.#getSiteId(siteId));
     return deviceParams.data;
   }
@@ -159,7 +157,7 @@ class SolixE1600 {
    * @return {Promise<any>} - A promise that resolves with the response from setting the schedule.
    */
   async setSchedule(schedule, siteId = undefined) {
-    await this.#init();
+    await this.init();
     const deviceN = {
       siteId: siteId ?? await this.#getSiteId(siteId),
       paramType: "4",
