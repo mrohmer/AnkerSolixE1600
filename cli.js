@@ -5,7 +5,7 @@
 */
 const fs = require("fs/promises");
 
-const SolixE1600 = require("./SolixE1600.js");
+const SolixE1600 = require("./src/SolixE1600.js");
 
 const assertEnv = (envName, message) => {
   if (typeof process.env[envName] == 'undefined') {

@@ -1,6 +1,6 @@
 module.exports = function (RED) {
   function Reader(config) {
-    const SolixE1600 = require('./SolixE1600.js');
+    const SolixE1600 = require('./src/SolixE1600.js');
     RED.nodes.createNode(this, config);
 
     const sessionConfig = this.context().global.get("solixSession");
