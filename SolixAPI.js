@@ -319,7 +319,7 @@ class SolixApi {
      * @param {Object} data
      * @returns {Promise<ResultResponse<any>>}
      */
-    const authFetch = async (endpoint, data) => {
+    const authFetch = async (endpoint, data= {}) => {
       const response = await this.fetch(endpoint, data, headers);
       return response.json();
     };
