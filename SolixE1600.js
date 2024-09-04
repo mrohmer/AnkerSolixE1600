@@ -10,6 +10,7 @@ class SolixE1600 {
    * @param {string} config.username - The username. (mandatory)
    * @param {string} config.password - The password. (mandatory)
    * @param {Object} config.logger - The logger object. (optional)
+   * @param {Object} config.loginCredentials - The login credentials. (optional)
    * @throws {Error} Throws an error if username is not provided.
    * @throws {Error} Throws an error if password is not provided.
    */
@@ -17,10 +18,10 @@ class SolixE1600 {
     if (!config?.country) {
       config.country = 'DE';
     }
-    if (!config?.username) {
+    if (!config?.username && !config.loginCredentials) {
       throw new Error("No username provided");
     }
-    if (!config?.password) {
+    if (!config?.password && !config.loginCredentials) {
       throw new Error("No password provided");
     }
     this.config = config;
