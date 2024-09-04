@@ -115,6 +115,14 @@ const { createCipheriv, createECDH, createHash } = require("crypto");
  */
 
 /**
+ * @typedef {Object} SiteHomepageResponse
+ * @property {Site[]} site_list
+ * @property {any[]} solar_list
+ * @property {any[]} pps_list
+ * @property {Solarbank[]} solarbank_list
+ */
+
+/**
  * @typedef {Object} SiteListResponse
  * @property {Site[]} site_list
  */
@@ -328,7 +336,7 @@ class SolixApi {
       getUserMqttInfo: async () => authFetch("/app/devicemanage/get_user_mqtt_info"),
 
       /**
-       * @returns {Promise<ResultResponse<any>>}
+       * @returns {Promise<ResultResponse<SiteHomepageResponse>>}
        */
       siteHomepage: async () => authFetch("/power_service/v1/site/get_site_homepage", {}),
 
