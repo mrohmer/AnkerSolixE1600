@@ -1,4 +1,4 @@
-const { ECDH, createCipheriv, createECDH, createHash } = require("crypto");
+const { createCipheriv, createECDH, createHash } = require("crypto");
 
 /**
  * @typedef {Object} Options
@@ -218,7 +218,7 @@ const ParamType = {
 
 /**
  * @typedef {Object} SiteDeviceParamResponse
- * @property {any} param_data
+ * @property {LoadConfiguration} param_data
  */
 
 class SolixApi {
@@ -393,7 +393,7 @@ class SolixApi {
 
       /**
        * @param {{ paramType: ParamType | string, siteId: string, cmd?: number, paramData: any }} params
-       * @returns {Promise<ResultResponse<SiteDeviceParamResponse>>}
+       * @returns {Promise<ResultResponse<any>>}
        */
       setSiteDeviceParam: async ({ paramType, siteId, cmd = 17, paramData }) => {
         let data = { site_id: siteId, param_type: paramType, cmd, param_data: paramData };
