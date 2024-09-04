@@ -1,0 +1,33 @@
+<script type="text/javascript">
+  RED.nodes.registerType('SolixApi', {
+    category: 'config',
+    defaults: {
+      name: {value: ""},
+      username: {value: "", required: true},
+      password: {type: "string", required: true},
+      country: {type: "string", required: true}
+    },
+    label: function () {
+      return this.name || "Solix API";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="SolixApi">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-username"><i class="fa fa-tag"></i> Username</label>
+        <input type="text" id="node-config-input-username" placeholder="(as used in app eq. email)">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-password"><i class="fa fa-code"></i> Password</label>
+        <input type="password" id="node-config-input-password" placeholder="(as used in app)">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-country"><i class="fa fa-code"></i> Country Code</label>
+        <input type="text" id="node-config-input-country" maxlength="2" placeholder="eq. DE">
+    </div>
+</script>

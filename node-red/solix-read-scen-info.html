@@ -1,0 +1,28 @@
+<script type="text/javascript">
+  RED.nodes.registerType('Solix | Read Scen Info', {
+    category: 'Solix',
+    color: '#a0d0a0',
+    defaults: {
+      name: {value: ""},
+      api: {value: "", type: "SolixApi"},
+    },
+    inputs: 1,
+    outputs: 1,
+    outputLabels: ['Scen Info'],
+    icon: "font-awesome/fa-flash",
+    label: function () {
+      return this.name || "Read Solix Scen Info";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="Solix | Read Scen Info">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-api"><i class="fa fa-tag"></i> API</label>
+        <input type="text" id="node-input-api" placeholder="Solix API">
+    </div>
+</script>
