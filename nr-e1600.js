@@ -3,11 +3,21 @@ module.exports = function (RED) {
     const SolixE1600 = require('./SolixE1600.js');
     RED.nodes.createNode(this, config);
 
+    const sessionConfig = this.context().global.get("solixSession");
+
+    if (
+      sessionConfig?.loginCredentials?.token_expires_at
+      && sessionConfig.loginCredentials.token_expires_at > (+new Date() / 1000)
+      && ['username', 'password', 'country'].every(k => sessionConfig[k] === config[k])
+    ) {
+      config.loginCredentials = sessionConfig.loginCredentials;
+    }
+
     const mysolix = new SolixE1600(config);
 
     const storeSessionConfig = () => {
       const solixconfig = mysolix.getSessionConfiguration();
-      this.con("sessionconfig", solixconfig);
+      this.context().global.set("solixSession", solixconfig);
     }
     mysolix.init()
       .then(() => storeSessionConfig())
