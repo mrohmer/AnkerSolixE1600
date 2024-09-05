@@ -80,12 +80,12 @@ class SolixE1600 {
     await this.init();
 
     const sites = await this.getSites();
-    if (!sites.length) {
+    if (!sites?.length) {
       return undefined;
     }
 
     if (typeof siteId == 'string') {
-      const hasSiteId = sites.some(s => s.site_id === siteId);
+      const hasSiteId = sites?.some(s => s.site_id === siteId);
 
       if (!hasSiteId) {
         throw new Error(`could not find site with id ${siteId}`)
