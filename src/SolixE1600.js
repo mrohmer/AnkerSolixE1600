@@ -1,7 +1,12 @@
 const SolixApi = require("./SolixAPI.js");
+const Emitter = require('./Emitter');
 
-class SolixE1600 {
-
+/**
+ * The SolixE1600 class.
+ * @class
+ * @extends Emitter
+ */
+class SolixE1600 extends Emitter {
   /**
    * Initializes a new instance of the constructor function.
    *
@@ -15,6 +20,7 @@ class SolixE1600 {
    * @throws {Error} Throws an error if password is not provided.
    */
   constructor(config) {
+    super(['couldNotGetCredentials', 'authFailed']);
     if (!config?.country) {
       config.country = 'DE';
     }
@@ -36,10 +42,12 @@ class SolixE1600 {
     const loginResponse = await this.api.login();
     console.log('LoginResponse', loginResponse);
     if (loginResponse.code === 100053) {
+      this.emit('couldNotGetCredentials', loginResponse);
       throw new Error(loginResponse.msg);
     }
 
     if (!loginResponse.data) {
+      this.emit('couldNotGetCredentials', loginResponse);
       throw new Error('Unable to retrieve auth_token during API login');
     }
 
@@ -54,6 +62,7 @@ class SolixE1600 {
     try {
       return this.api.withLogin(this.config.loginCredentials);
     } catch (e) {
+      this.emit('authFailed', e);
       console.error(e);
       delete this.config.loginCredentials;
       throw new Error("Login failed");

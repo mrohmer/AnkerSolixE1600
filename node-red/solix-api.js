@@ -28,6 +28,16 @@ module.exports = function (RED) {
 
     const storeSessionConfig = () => this.context().global.set(sessionKey, this.mysolix.getSessionConfiguration());
 
+    this.mysolix
+      .on('couldNotGetCredentials', (loginResponse) => {
+        this.error('could not get credentials', loginResponse);
+        storeSessionConfig();
+      })
+      .on('authFailed', (err) => {
+        this.error('authentication failed', err);
+        storeSessionConfig();
+      })
+
     this.init = async () => {
       try {
         await this.lock.acquire();
