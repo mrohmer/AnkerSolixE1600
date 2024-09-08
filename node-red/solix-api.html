@@ -8,7 +8,7 @@
       country: {type: "string", required: true}
     },
     label: function () {
-      return this.name || "Solix API";
+      return this.name || this.username || "Solix API";
     }
   });
 </script>
