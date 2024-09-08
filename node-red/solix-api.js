@@ -21,7 +21,10 @@ module.exports = function (RED) {
     }
 
     this.lock = new AsyncLock()
-    this.mysolix = new SolixE1600(config);
+    this.mysolix = new SolixE1600({
+      ...config,
+      logger: this
+    });
 
     const storeSessionConfig = () => this.context().global.set(sessionKey, this.mysolix.getSessionConfiguration());
 
@@ -30,6 +33,9 @@ module.exports = function (RED) {
         await this.lock.acquire();
         await this.mysolix.init()
         storeSessionConfig();
+      } catch (e) {
+        this.error(e);
+        throw e;
       } finally {
         this.lock.release();
       }
