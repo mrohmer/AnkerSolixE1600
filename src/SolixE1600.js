@@ -20,7 +20,7 @@ class SolixE1600 extends Emitter {
    * @throws {Error} Throws an error if password is not provided.
    */
   constructor(config) {
-    super(['couldNotGetCredentials', 'authFailed']);
+    super(['couldNotGetCredentials', 'authFailed'], config?.logger);
     if (!config?.country) {
       config.country = 'DE';
     }

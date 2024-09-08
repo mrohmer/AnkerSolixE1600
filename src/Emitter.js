@@ -9,12 +9,17 @@ class Emitter extends EventEmitter {
   /** @type {number|undefined} */
   #maxListeners = undefined;
 
+  /** @type {console|Object} */
+  #logger;
+
   /**
    * @param {string[]} eventNames
+   * @param {console|Object|undefined} logger
    */
-  constructor(eventNames) {
+  constructor(eventNames, logger) {
     super();
     this.#eventNames = eventNames;
+    this.#logger = logger ?? console;
   }
 
   /**
@@ -39,7 +44,13 @@ class Emitter extends EventEmitter {
   emit(eventName, ...args) {
     const listeners = this.listeners(eventName);
 
-    listeners?.forEach(listener => listener(...args));
+    listeners?.forEach(listener => {
+      try {
+        listener(...args);
+      } catch (e) {
+        this.#logger?.error?.(e);
+      }
+    });
 
     return listeners?.length > 0;
   }
