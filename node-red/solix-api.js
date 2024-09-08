@@ -29,6 +29,9 @@ module.exports = function (RED) {
     const storeSessionConfig = () => this.context().global.set(sessionKey, this.mysolix.getSessionConfiguration());
 
     this.mysolix
+      .on('initialized', () => {
+        storeSessionConfig();
+      })
       .on('couldNotGetCredentials', (loginResponse) => {
         this.error('could not get credentials', loginResponse);
         storeSessionConfig();

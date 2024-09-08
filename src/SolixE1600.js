@@ -24,10 +24,10 @@ class SolixE1600 extends Emitter {
     if (!config?.country) {
       config.country = 'DE';
     }
-    if (!config?.username && !config.loginCredentials) {
+    if (!config?.username) {
       throw new Error("No username provided");
     }
-    if (!config?.password && !config.loginCredentials) {
+    if (!config?.password) {
       throw new Error("No password provided");
     }
     this.config = config;
@@ -35,9 +35,15 @@ class SolixE1600 extends Emitter {
   }
 
   async #getLoginCredentials() {
-    if (this.config.loginCredentials) {
-      return this.config.loginCredentials;
+    if (
+      this.config.loginCredentials &&
+      this.config.loginCredentials?.token_expires_at &&
+      this.config.loginCredentials.token_expires_at > (+new Date() / 1000)
+    ) {
+      return {token: this.config.loginCredentials, fetched: false};
     }
+
+    this.config.loginCredentials = undefined;
 
     const loginResponse = await this.api.login();
     console.log('LoginResponse', loginResponse);
@@ -51,16 +57,16 @@ class SolixE1600 extends Emitter {
       throw new Error('Unable to retrieve auth_token during API login');
     }
 
-    return loginResponse.data;
+    return {token: loginResponse.data, fetched: true};
   }
 
   #getApiSession() {
     if (this.apiSession) {
-      return this.apiSession;
+      return {session: this.apiSession, fetched: false}
     }
 
     try {
-      return this.api.withLogin(this.config.loginCredentials);
+      return {session: this.api.withLogin(this.config.loginCredentials), fetched: true};
     } catch (e) {
       this.emit('authFailed', e);
       console.error(e);
@@ -75,8 +81,14 @@ class SolixE1600 extends Emitter {
    * @return {Promise<void>}
    */
   async init() {
-    this.config.loginCredentials = await this.#getLoginCredentials();
-    this.apiSession = this.#getApiSession();
+    const {token, fetched: tokenFetched} = await this.#getLoginCredentials();
+    this.config.loginCredentials = token;
+    const {session, fetched: sessionFetched} = this.#getApiSession();
+    this.apiSession = session;
+
+    if (tokenFetched || sessionFetched) {
+      this.emit('initialized', this.getSessionConfiguration());
+    }
   }
 
   /**
