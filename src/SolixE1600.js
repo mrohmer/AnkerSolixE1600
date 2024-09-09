@@ -187,6 +187,20 @@ class SolixE1600 extends Emitter {
     }
     return this.apiSession.setSiteDeviceParam(deviceN);
   }
+
+  /**
+   * @param {string} siteId
+   * @return {Promise<HomeLoadChartResponse>}
+   */
+  async getHomeLoadChart(siteId = undefined) {
+    await this.init();
+    const device = {
+      siteId: siteId ?? await this.#getSiteId(siteId),
+    }
+    const result = await this.apiSession.getHomeLoadChart(device);
+
+    return result?.data;
+  }
 }
 
 module.exports = SolixE1600;

@@ -39,7 +39,7 @@ You can install this package from the Node-RED palette manager by searching for 
 - **SolixApi**: Global configuration node for Solix API.
 - **Solix | Read Scen Info**: Read the API Endpoint Scen Info. Includes information about solarbanks and the site.
 - **Solix | Set Schedule**: Sets & reads the schedule after wards.
-
+- **Solix | Read Home Load Chart**: Reads the home load chart.
 
 <!-- LICENSE -->
 ## License
