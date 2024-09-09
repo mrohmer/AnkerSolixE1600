@@ -27,9 +27,9 @@
   "node-red": {
     "version": ">=2.1.0",
     "nodes": {
-      "SolixApi": "node-red/solix-api.js",
-      "Solix | Set Schedule": "node-red/solix-set-schedule.js",
-      "Solix | Read Scen Info": "node-red/solix-read-scen-info.js"
+      "SolixApi": "node-red/nodes/api/index.js",
+      "Solix | Set Schedule": "node-red/nodes/set-schedule/index.js",
+      "Solix | Read Scen Info": "node-red/nodes/read-scen-info/index.js"
     }
   },
   "engines": {

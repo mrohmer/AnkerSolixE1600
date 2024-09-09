@@ -1,7 +1,7 @@
 module.exports = function (RED) {
   function SolixApiNode(config) {
-    const SolixE1600 = require('../src/SolixE1600.js');
-    const AsyncLock = require('./lib/async-lock');
+    const SolixE1600 = require('../../../src/SolixE1600.js');
+    const AsyncLock = require('../../lib/async-lock');
     RED.nodes.createNode(this, config);
 
     this.name = config.name;
