@@ -250,7 +250,6 @@ class SolixApi {
    * @returns {string}
    */
   md5(s) {
-    this.logger.log(s);
     return createHash("md5").update(Buffer.from(s)).digest("hex");
   }
 
@@ -289,7 +288,7 @@ class SolixApi {
    * @returns {Promise<Response>}
    */
   async fetch(endpoint, data, headers = {}) {
-    this.logger.log(JSON.stringify(data));
+    this.logger?.debug?.('fetch', endpoint, JSON.stringify(data));
     const url = new URL(endpoint, "https://ankerpower-api-eu.anker.com").href;
 
     return fetch(url, {
@@ -391,7 +390,7 @@ class SolixApi {
         if (response.data) {
           switch (paramType) {
             case ParamType.LoadConfiguration:
-              return { ...response, data: { param_data: JSON.parse(response.data.param_data) } };
+              return { ...response, data: { param_data: JSON.parse(response?.data?.param_data) } };
             default:
               return response;
           }

@@ -46,7 +46,7 @@ class SolixE1600 extends Emitter {
     this.config.loginCredentials = undefined;
 
     const loginResponse = await this.api.login();
-    console.log('LoginResponse', loginResponse);
+    this.config.logger?.debug?.('LoginResponse', loginResponse);
     if (loginResponse.code === 100053) {
       this.emit('couldNotGetCredentials', loginResponse);
       throw new Error(loginResponse.msg);
@@ -69,7 +69,7 @@ class SolixE1600 extends Emitter {
       return {session: this.api.withLogin(this.config.loginCredentials), fetched: true};
     } catch (e) {
       this.emit('authFailed', e);
-      console.error(e);
+      this.config.logger?.error?.('authFailed', loginResponse);
       delete this.config.loginCredentials;
       throw new Error("Login failed");
     }
@@ -153,7 +153,7 @@ class SolixE1600 extends Emitter {
     }
 
     const deviceParams = await this.apiSession.getSiteDeviceParam(device);
-    return deviceParams.data.param_data;
+    return deviceParams?.data?.param_data;
   }
 
 
