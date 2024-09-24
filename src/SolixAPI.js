@@ -1,4 +1,5 @@
-const { createCipheriv, createECDH, createHash } = require("crypto");
+const {createCipheriv, createECDH, createHash} = require("crypto");
+const HttpError = require("./HttpError");
 
 /**
  * @typedef {Object} Options
@@ -235,7 +236,7 @@ class SolixApi {
   /**
    * @param {Options} options
    */
-  constructor({ username, password, country, logger }) {
+  constructor({username, password, country, logger}) {
     this.username = username;
     this.password = password;
     this.logger = logger || console;
@@ -282,16 +283,17 @@ class SolixApi {
   }
 
   /**
+   * @template T
    * @param {string} endpoint
    * @param {Object} data
    * @param {Object} [headers]
-   * @returns {Promise<Response>}
+   * @returns {Promise<T>}
    */
   async fetch(endpoint, data, headers = {}) {
     this.logger?.debug?.('fetch', endpoint, JSON.stringify(data));
     const url = new URL(endpoint, "https://ankerpower-api-eu.anker.com").href;
 
-    return fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
       headers: {
@@ -304,6 +306,12 @@ class SolixApi {
         ...headers,
       },
     });
+
+    if (response.status < 200 || response.status >= 400) {
+      throw new HttpError(response.status, url, await response.text());
+    }
+
+    return response.json();
   }
 
   /**
@@ -311,17 +319,15 @@ class SolixApi {
    * @returns {Object}
    */
   withLogin(login) {
-    const headers = { "X-Auth-Token": login.auth_token, gtoken: this.md5(login.user_id) };
+    const headers = {"X-Auth-Token": login.auth_token, gtoken: this.md5(login.user_id)};
 
     /**
      * @param {string} endpoint
      * @param {Object} data
      * @returns {Promise<ResultResponse<any>>}
      */
-    const authFetch = async (endpoint, data= {}) => {
-      const response = await this.fetch(endpoint, data, headers);
-      return response.json();
-    };
+    const authFetch = (endpoint, data = {}) =>
+      this.fetch(endpoint, data, headers);
 
     return {
       /**
@@ -348,8 +354,8 @@ class SolixApi {
        * @param {{ siteId: string, deviceSn?: string }} params
        * @returns {Promise<ResultResponse<HomeLoadChartResponse>>}
        */
-      getHomeLoadChart: async ({ siteId, deviceSn = "" }) => {
-        const data = { site_id: siteId, device_sn: deviceSn };
+      getHomeLoadChart: async ({siteId, deviceSn = ""}) => {
+        const data = {site_id: siteId, device_sn: deviceSn};
         return authFetch("/power_service/v1/site/get_home_load_chart", data);
       },
 
@@ -358,7 +364,7 @@ class SolixApi {
        * @returns {Promise<ResultResponse<ScenInfo>>}
        */
       scenInfo: async (siteId) => {
-        const data = { site_id: siteId };
+        const data = {site_id: siteId};
         return authFetch("/power_service/v1/site/get_scen_info", data);
       },
 
@@ -366,7 +372,14 @@ class SolixApi {
        * @param {{ siteId: string, deviceSn: string, type: string, startTime?: Date, endTime?: Date, deviceType?: string }} params
        * @returns {Promise<ResultResponse<EnergyAnalysis>>}
        */
-      energyAnalysis: async ({ siteId, deviceSn, type, startTime = new Date(), endTime, deviceType = "solar_production" }) => {
+      energyAnalysis: async ({
+                               siteId,
+                               deviceSn,
+                               type,
+                               startTime = new Date(),
+                               endTime,
+                               deviceType = "solar_production"
+                             }) => {
         const startTimeString = `${startTime.getUTCFullYear()}-${this.pad(startTime.getUTCMonth())}-${this.pad(startTime.getUTCDate())}`;
         const endTimeString = endTime ? `${endTime.getUTCFullYear()}-${this.pad(endTime.getUTCMonth())}-${this.pad(endTime.getUTCDate())}` : "";
         const data = {
@@ -384,13 +397,13 @@ class SolixApi {
        * @param {{ paramType: ParamType | string, siteId: string }} params
        * @returns {Promise<ResultResponse<SiteDeviceParamResponse>>}
        */
-      getSiteDeviceParam: async ({ paramType, siteId }) => {
-        const data = { site_id: siteId, param_type: paramType };
+      getSiteDeviceParam: async ({paramType, siteId}) => {
+        const data = {site_id: siteId, param_type: paramType};
         const response = await authFetch("/power_service/v1/site/get_site_device_param", data);
         if (response.data) {
           switch (paramType) {
             case ParamType.LoadConfiguration:
-              return { ...response, data: { param_data: JSON.parse(response?.data?.param_data) } };
+              return {...response, data: {param_data: JSON.parse(response?.data?.param_data)}};
             default:
               return response;
           }
@@ -402,10 +415,10 @@ class SolixApi {
        * @param {{ paramType: ParamType | string, siteId: string, cmd?: number, paramData: any }} params
        * @returns {Promise<ResultResponse<any>>}
        */
-      setSiteDeviceParam: async ({ paramType, siteId, cmd = 17, paramData }) => {
-        let data = { site_id: siteId, param_type: paramType, cmd, param_data: paramData };
+      setSiteDeviceParam: async ({paramType, siteId, cmd = 17, paramData}) => {
+        let data = {site_id: siteId, param_type: paramType, cmd, param_data: paramData};
         if (paramType === ParamType.LoadConfiguration) {
-          data = { ...data, param_data: JSON.stringify(paramData) };
+          data = {...data, param_data: JSON.stringify(paramData)};
         }
         return authFetch("/power_service/v1/site/set_site_device_param", data);
       },
@@ -428,12 +441,7 @@ class SolixApi {
       transaction: `${new Date().getTime()}`,
     });
 
-    const response = await this.fetch("/passport/login", data);
-    if (response.status === 200) {
-      return response.json();
-    } else {
-      throw new Error(`Login failed (${response.status}): ${await response.text()}`);
-    }
+    return this.fetch("/passport/login", data);
   }
 }
 

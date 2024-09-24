@@ -1,5 +1,6 @@
 const SolixApi = require("./SolixAPI.js");
 const Emitter = require('./Emitter');
+const HttpError = require("./HttpError");
 
 /**
  * The SolixE1600 class.
@@ -68,9 +69,9 @@ class SolixE1600 extends Emitter {
     try {
       return {session: this.api.withLogin(this.config.loginCredentials), fetched: true};
     } catch (e) {
+      this.#clearCredentials();
       this.emit('authFailed', e);
       this.config.logger?.error?.('authFailed', loginResponse);
-      delete this.config.loginCredentials;
       throw new Error("Login failed");
     }
   }
@@ -98,9 +99,7 @@ class SolixE1600 extends Emitter {
    * @return {Promise<string>} The site ID.
    */
   async #getSiteId(siteId) {
-    await this.init();
-
-    const sites = await this.getSites();
+    const sites = await this.#internalGetSites();
     if (!sites?.length) {
       return undefined;
     }
@@ -127,15 +126,26 @@ class SolixE1600 extends Emitter {
     return this.config;
   }
 
+  #clearCredentials() {
+    this.config.loginCredentials = undefined;
+    this.apiSession = undefined;
+  }
+
+  async #internalGetSites() {
+    const sites = await this.apiSession.getSiteList();
+    return sites.data?.site_list;
+  }
+
   /**
    * Retrieves the list of sites.
    *
    * @return {Promise<Site[]>} The list of sites.
    */
-  async getSites() {
-    await this.init();
-    const sites = await this.apiSession.getSiteList();
-    return sites.data?.site_list;
+  getSites() {
+    return this.#wrap(async () => {
+      await this.init();
+      return this.#internalGetSites();
+    });
   }
 
   /**
@@ -145,15 +155,17 @@ class SolixE1600 extends Emitter {
    * @param {string} siteId - The site identifier or site index. If not provided, the first site is used.
    * @return {Promise<any>} - The schedule data.
    */
-  async getSchedule(siteId = undefined) {
-    await this.init();
-    const device = {
-      siteId: siteId ?? await this.#getSiteId(siteId),
-      paramType: "4"
-    }
+  getSchedule(siteId = undefined) {
+    return this.#wrap(async () => {
+      await this.init();
+      const device = {
+        siteId: siteId ?? await this.#getSiteId(siteId),
+        paramType: "4"
+      }
 
-    const deviceParams = await this.apiSession.getSiteDeviceParam(device);
-    return deviceParams?.data?.param_data;
+      const deviceParams = await this.apiSession.getSiteDeviceParam(device);
+      return deviceParams?.data?.param_data;
+    })
   }
 
 
@@ -163,10 +175,12 @@ class SolixE1600 extends Emitter {
    * @param {string} siteId - The site identifier or site index. If not provided, the first site is used.
    * @return {Promise<ScenInfo>} - The schedule data.
    */
-  async getScenInfo(siteId = undefined) {
-    await this.init();
-    const deviceParams = await this.apiSession.scenInfo(siteId ?? await this.#getSiteId(siteId));
-    return deviceParams.data;
+  getScenInfo(siteId = undefined) {
+    return this.#wrap(async () => {
+      await this.init();
+      const deviceParams = await this.apiSession.scenInfo(siteId ?? await this.#getSiteId(siteId));
+      return deviceParams.data;
+    });
   }
 
   /**
@@ -177,29 +191,53 @@ class SolixE1600 extends Emitter {
    * @param {string} siteId - The site for which the schedule should be set. If not provided, the first site is used.
    * @return {Promise<any>} - A promise that resolves with the response from setting the schedule.
    */
-  async setSchedule(schedule, siteId = undefined) {
-    await this.init();
-    const deviceN = {
-      siteId: siteId ?? await this.#getSiteId(siteId),
-      paramType: "4",
-      cmd: 17,
-      paramData: schedule
-    }
-    return this.apiSession.setSiteDeviceParam(deviceN);
+  setSchedule(schedule, siteId = undefined) {
+    return this.#wrap(async () => {
+      await this.init();
+      const deviceN = {
+        siteId: siteId ?? await this.#getSiteId(siteId),
+        paramType: "4",
+        cmd: 17,
+        paramData: schedule
+      }
+      return this.apiSession.setSiteDeviceParam(deviceN);
+    });
   }
 
   /**
    * @param {string} siteId
    * @return {Promise<HomeLoadChartResponse>}
    */
-  async getHomeLoadChart(siteId = undefined) {
-    await this.init();
-    const device = {
-      siteId: siteId ?? await this.#getSiteId(siteId),
-    }
-    const result = await this.apiSession.getHomeLoadChart(device);
+  getHomeLoadChart(siteId = undefined) {
+    return this.#wrap(async () => {
+      await this.init();
+      const device = {
+        siteId: siteId ?? await this.#getSiteId(siteId),
+      }
+      const result = await this.apiSession.getHomeLoadChart(device);
 
-    return result?.data;
+      return result?.data;
+    });
+  }
+
+  /**
+   * @template T
+   * @param {function(): Promise<T>} fn
+   * @return {Promise<T>}
+   */
+  async #wrap(fn) {
+    try {
+      return await fn();
+    } catch (e) {
+      console.log(e);
+      if (e instanceof HttpError && [401, 403].includes(e.statusCode)) {
+        this.#clearCredentials();
+        this.emit('authFailed', e);
+      }
+      this.config.logger?.error?.(e);
+      throw e;
+    }
+
   }
 }
 
