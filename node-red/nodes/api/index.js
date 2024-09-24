@@ -53,7 +53,30 @@ module.exports = function (RED) {
         this.lock.release();
       }
     }
+    this.clearCredentials = () => {
+      this.mysolix.clearCredentials();
+      storeSessionConfig();
+    }
   }
 
   RED.nodes.registerType("SolixApi", SolixApiNode);
+
+
+  RED.httpAdmin.get(`/anker-solix/clear-credentials`, function (req, res) {
+    const {apiId} = req.query ?? {};
+
+    if (!apiId) {
+      res.status(400).json({error: 'No API given'});
+      return;
+    }
+
+    const api = RED.nodes.getNode(apiId);
+    if (!api) {
+      res.status(400).json({error: 'No API configured'});
+      return;
+    }
+
+    api.clearCredentials();
+    res.json({status: 'success'});
+  });
 }

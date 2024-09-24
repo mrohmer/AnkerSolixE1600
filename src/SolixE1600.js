@@ -69,7 +69,7 @@ class SolixE1600 extends Emitter {
     try {
       return {session: this.api.withLogin(this.config.loginCredentials), fetched: true};
     } catch (e) {
-      this.#clearCredentials();
+      this.clearCredentials();
       this.emit('authFailed', e);
       this.config.logger?.error?.('authFailed', loginResponse);
       throw new Error("Login failed");
@@ -126,7 +126,7 @@ class SolixE1600 extends Emitter {
     return this.config;
   }
 
-  #clearCredentials() {
+  clearCredentials() {
     this.config.loginCredentials = undefined;
     this.apiSession = undefined;
   }
@@ -231,7 +231,7 @@ class SolixE1600 extends Emitter {
     } catch (e) {
       console.log(e);
       if (e instanceof HttpError && [401, 403].includes(e.statusCode)) {
-        this.#clearCredentials();
+        this.clearCredentials();
         this.emit('authFailed', e);
       }
       this.config.logger?.error?.(e);

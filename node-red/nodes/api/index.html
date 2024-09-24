@@ -9,6 +9,32 @@
     },
     label: function () {
       return this.name || this.username || "Solix API";
+    },
+    oneditprepare: function () {
+      var $findBtn = $('#reset-credentials');
+      var apiId = this.id;
+      $findBtn.on('click', function () {
+        if (!apiId.length || apiId === '_ADD_') {
+          alert('API not ready yet');
+          return false;
+        }
+
+        $('#reset-credentials i').addClass('fa fa-spin fa-spinner');
+
+        $.getJSON('anker-solix/clear-credentials', {
+          apiId,
+        }).done(function (data, textStatus, jqXHR) {
+          $('#reset-credentials i').removeClass('fa fa-spin fa-spinner');
+
+          if (data?.deviceId) {
+            $('#node-input-deviceId').val(data.deviceId);
+          }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+          $('#reset-credentials i').removeClass('fa fa-spin fa-spinner');
+          alert('Error: ' + errorThrown);
+        });
+
+      });
     }
   });
 </script>
@@ -29,5 +55,11 @@
     <div class="form-row">
         <label for="node-config-input-country"><i class="fa fa-code"></i> Country Code</label>
         <input type="text" id="node-config-input-country" maxlength="2" placeholder="eq. DE">
+    </div>
+    <div class="form-row">
+        <label for="reset-credentials" class="l-width"><i class="fa fa-refresh"></i></label>
+        <button type="button" style="width: 70%" class="btn btn-light" id="reset-credentials" name="reset-credentials"><i class=""></i>
+            Reset Credentials
+        </button>
     </div>
 </script>
