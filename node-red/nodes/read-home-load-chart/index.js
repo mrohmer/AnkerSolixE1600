@@ -23,7 +23,6 @@ module.exports = function (RED) {
         this.status({fill: "green", shape: "dot", text: `last read at ${new Date().toLocaleTimeString()}`});
         this.send([{payload}]);
       } catch (e) {
-        this.error(e);
         this.status({fill: "red", shape: "dot", text: "Failed:" + e});
       }
     });

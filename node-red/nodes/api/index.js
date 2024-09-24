@@ -36,8 +36,7 @@ module.exports = function (RED) {
         this.error('could not get credentials', loginResponse);
         storeSessionConfig();
       })
-      .on('authFailed', (err) => {
-        this.error('authentication failed', err);
+      .on('authFailed', () => {
         storeSessionConfig();
       })
 
