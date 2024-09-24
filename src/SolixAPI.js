@@ -333,28 +333,28 @@ class SolixApi {
       /**
        * @returns {Promise<ResultResponse<DeviceDataResponse>>}
        */
-      getRelateAndBindDevices: async () => authFetch("/power_service/v1/app/get_relate_and_bind_devices", {}),
+      getRelateAndBindDevices: () => authFetch("/power_service/v1/app/get_relate_and_bind_devices", {}),
 
       /**
        * @returns {Promise<ResultResponse<UserMqttInfo>>}
        */
-      getUserMqttInfo: async () => authFetch("/app/devicemanage/get_user_mqtt_info"),
+      getUserMqttInfo: () => authFetch("/app/devicemanage/get_user_mqtt_info"),
 
       /**
        * @returns {Promise<ResultResponse<SiteHomepageResponse>>}
        */
-      siteHomepage: async () => authFetch("/power_service/v1/site/get_site_homepage", {}),
+      siteHomepage: () => authFetch("/power_service/v1/site/get_site_homepage", {}),
 
       /**
        * @returns {Promise<ResultResponse<SiteListResponse>>}
        */
-      getSiteList: async () => authFetch("/power_service/v1/site/get_site_list", {}),
+      getSiteList: () => authFetch("/power_service/v1/site/get_site_list", {}),
 
       /**
        * @param {{ siteId: string, deviceSn?: string }} params
        * @returns {Promise<ResultResponse<HomeLoadChartResponse>>}
        */
-      getHomeLoadChart: async ({siteId, deviceSn = ""}) => {
+      getHomeLoadChart: ({siteId, deviceSn = ""}) => {
         const data = {site_id: siteId, device_sn: deviceSn};
         return authFetch("/power_service/v1/site/get_home_load_chart", data);
       },
@@ -363,7 +363,7 @@ class SolixApi {
        * @param {string} siteId
        * @returns {Promise<ResultResponse<ScenInfo>>}
        */
-      scenInfo: async (siteId) => {
+      scenInfo: (siteId) => {
         const data = {site_id: siteId};
         return authFetch("/power_service/v1/site/get_scen_info", data);
       },
@@ -372,7 +372,7 @@ class SolixApi {
        * @param {{ siteId: string, deviceSn: string, type: string, startTime?: Date, endTime?: Date, deviceType?: string }} params
        * @returns {Promise<ResultResponse<EnergyAnalysis>>}
        */
-      energyAnalysis: async ({
+      energyAnalysis: ({
                                siteId,
                                deviceSn,
                                type,
@@ -415,7 +415,7 @@ class SolixApi {
        * @param {{ paramType: ParamType | string, siteId: string, cmd?: number, paramData: any }} params
        * @returns {Promise<ResultResponse<any>>}
        */
-      setSiteDeviceParam: async ({paramType, siteId, cmd = 17, paramData}) => {
+      setSiteDeviceParam: ({paramType, siteId, cmd = 17, paramData}) => {
         let data = {site_id: siteId, param_type: paramType, cmd, param_data: paramData};
         if (paramType === ParamType.LoadConfiguration) {
           data = {...data, param_data: JSON.stringify(paramData)};
