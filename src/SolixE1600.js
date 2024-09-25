@@ -230,7 +230,7 @@ class SolixE1600 extends Emitter {
       return await fn();
     } catch (e) {
       console.log(e);
-      if (e instanceof HttpError && [401, 403].includes(e.statusCode)) {
+      if (e instanceof HttpError && e.isAuthError) {
         this.clearCredentials();
         this.emit('authFailed', e);
       }

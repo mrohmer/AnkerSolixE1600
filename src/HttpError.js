@@ -4,6 +4,11 @@ class HttpError extends Error {
   /** @type {string} */
   url;
 
+  /** @type {boolean} */
+  get isAuthError() {
+    return [401, 403].includes(this.statusCode);
+  }
+
   /**
    * @param {number} statusCode
    * @param {string} url
