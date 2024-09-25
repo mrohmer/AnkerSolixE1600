@@ -1,6 +1,6 @@
 {
   "name": "@rohmer/node-red-ankersolix",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Library to access an ANKER Solix API from Node-RED",
   "main": "src/SolixE1600.js",
   "devDependencies": {},
