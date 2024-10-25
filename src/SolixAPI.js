@@ -219,6 +219,15 @@ const HttpError = require("./HttpError");
  */
 
 /**
+ * @typedef {Function} AuthenticatedFetch
+ * @description A function that performs an authenticated fetch request.
+ * @template T
+ * @param {string} endpoint - The API endpoint to send the request to.
+ * @param {Object} [data={}] - Optional data object containing key-value pairs to include in the request.
+ * @returns {Promise<ResultResponse<T>>} A promise that resolves with the API response data.
+ */
+
+/**
  * @enum {string}
  */
 const ParamType = {
@@ -321,201 +330,69 @@ class SolixApi {
   withLogin(login) {
     const headers = {"X-Auth-Token": login.auth_token, gtoken: this.md5(login.user_id)};
 
-    /**
-     * @param {string} endpoint
-     * @param {Object} data
-     * @returns {Promise<ResultResponse<any>>}
-     */
+    /** @type AuthenticatedFetch */
     const authFetch = (endpoint, data = {}) =>
       this.fetch(endpoint, data, headers);
 
-    const powerServicesApp = {
-      /**
-       * @returns {Promise<ResultResponse<DeviceDataResponse>>}
-       */
-      getRelateAndBindDevices: () => authFetch("/power_service/v1/app/get_relate_and_bind_devices"),
-      getUserDevices: () => authFetch("/power_service/v1/site/list_user_devices"),
-      getChargingDevices: () => authFetch("/power_service/v1/site/get_charging_device"),
-      getAutoUpgrade: () => authFetch("/power_service/v1/app/get_auto_upgrade"),
-      setAutoUpgrade: (params) => authFetch("/power_service/v1/app/set_auto_upgrade", params),
-      getDeviceLoad: () => authFetch("/power_service/v1/app/device/get_device_home_load"),
-      setDeviceLoad: (params) => authFetch("/power_service/v1/app/device/set_device_home_load", params),
-      getOtaBatch: (deviceSnList) => authFetch("app/ota/batch/check_update", {device_sn_list: deviceSnList}),
-      getOtaInfo: (params) => authFetch("/power_service/v1/app/compatible/get_ota_info", params),
-      getOtaUpdate: (params) => authFetch("/power_service/v1/app/compatible/get_ota_update", params),
-      solarInfo: (params) => authFetch("/power_service/v1/app/compatible/get_compatible_solar_info", params),
-      getCutoff: (params) => authFetch("/power_service/v1/app/compatible/get_power_cutoff", params),
-      setCutoff: (params) => authFetch("/power_service/v1/app/compatible/set_power_cutoff", params),
-      compatibleProcess: (params) => authFetch("/power_service/v1/app/compatible/get_compatible_process", params),
-      getDeviceFittings: (params) => authFetch("/power_service/v1/app/get_relate_device_fittings", params),
-      getUpgradeRecord: () => authFetch("/power_service/v1/app/get_upgrade_record"),
-      checkUpgradeRecord: (params) => authFetch("/power_service/v1/app/check_upgrade_record", params),
-      getMessageUnread: () => authFetch("/power_service/v1/get_message_unread"),
-      getMessage: (params) => authFetch("/power_service/v1/get_message", params),
-      getProductCategories: () => authFetch("/power_service/v1/product_categories"),
-      getProductAccessories: () => authFetch("/power_service/v1/product_accessories"),
-      getDeviceAttributes: () => authFetch("/power_service/v1/app/device/get_device_attrs"),
-      getConfig: () => authFetch("/power_service/v1/app/get_config"),
-      getInstallation: () => authFetch("/power_service/v1/app/compatible/get_installation"),
-      setInstallation: (params) => authFetch("/power_service/v1/app/compatible/set_installation", params),
-      getThirdPlatforms: () => authFetch("/power_service/v1/app/third/platform/list"),
-      getTokenByUserId: (userId) => authFetch("/power_service/v1/app/get_token_by_userid", {user_id: userId}),
-      getShellyStatus: (params) => authFetch("/power_service/v1/app/get_user_op_shelly_status", params),
-    };
 
-    const powerServicesSite = {
-      /**
-       * @returns {Promise<ResultResponse<SiteHomepageResponse>>}
-       */
-      siteHomepage: () => authFetch("/power_service/v1/site/get_site_homepage"),
-      getWifiInfoList: (siteId) => authFetch("/power_service/v1/site/get_wifi_info_list", {site_id: siteId}),
-      getSitePrice: (siteId) => authFetch("/power_service/v1/site/get_site_price", {site_id: siteId}),
-      updateSitePrice: (siteId, params) => authFetch("/power_service/v1/site/update_site_price", {
-        ...params,
-        site_id: siteId
-      }),
-      /**
-       * @returns {Promise<ResultResponse<SiteListResponse>>}
-       */
-      getSiteList: () => authFetch("/power_service/v1/site/get_site_list"),
-      getSiteDetail: (siteId) => authFetch("/power_service/v1/site/get_site_detail", {site_id: siteId}),
-      getSiteRules: (siteId) => authFetch("/power_service/v1/site/get_site_rules", {site_id: siteId}),
-      /**
-       @param {string} siteId
-       * @param {{ deviceSn?: string }} [params]
-       * @returns {Promise<ResultResponse<HomeLoadChartResponse>>}
-       */
-      getHomeLoadChart: (siteId, {deviceSn} = {}) => authFetch("/power_service/v1/site/get_home_load_chart", {
-        site_id: siteId,
-        device_sn: deviceSn
-      }),
-      /**
-       * @param {string} siteId
-       * @returns {Promise<ResultResponse<ScenInfo>>}
-       */
-      scenInfo: (siteId) => authFetch("/power_service/v1/site/get_scen_info", {site_id: siteId}),
-      /**
-       * @param {string} siteId
-       * @param {{ deviceSn: string, type: string, startTime?: Date, endTime?: Date, deviceType?: string }} params
-       * @returns {Promise<ResultResponse<EnergyAnalysis>>}
-       */
-      energyAnalysis: (siteId, {
-        deviceSn,
-        type,
-        startTime = new Date(),
-        endTime,
-        deviceType = "solar_production"
-      }) => {
-        const startTimeString = `${startTime.getUTCFullYear()}-${this.pad(startTime.getUTCMonth())}-${this.pad(startTime.getUTCDate())}`;
-        const endTimeString = endTime ? `${endTime.getUTCFullYear()}-${this.pad(endTime.getUTCMonth())}-${this.pad(endTime.getUTCDate())}` : "";
-        const data = {
-          site_id: siteId,
-          device_sn: deviceSn,
-          type,
-          start_time: startTimeString,
-          device_type: deviceType,
-          end_time: endTimeString,
-        };
-        return authFetch("/power_service/v1/site/energy_analysis", data);
-      },
-      /**
-       * @param {string} siteId
-       * @param {{ paramType: ParamType | string }} params
-       * @returns {Promise<ResultResponse<SiteDeviceParamResponse>>}
-       */
-      getSiteDeviceParam: async (siteId, {paramType}) => {
-        const data = {site_id: siteId, param_type: paramType};
-        const response = await authFetch("/power_service/v1/site/get_site_device_param", data);
-        if (response.data) {
-          switch (paramType) {
-            case ParamType.LoadConfiguration:
-              return {...response, data: {param_data: JSON.parse(response?.data?.param_data)}};
-            default:
-              return response;
-          }
-        }
-        return response;
-      },
-      /**
-       * @param {string} siteId
-       * @param {{ paramType: ParamType | string, cmd?: number, paramData: any }} params
-       * @returns {Promise<ResultResponse<any>>}
-       */
-      setSiteDeviceParam: (siteId, {paramType, cmd = 17, paramData}) => {
-        let data = {site_id: siteId, param_type: paramType, cmd, param_data: paramData};
-        if (paramType === ParamType.LoadConfiguration) {
-          data = {...data, param_data: JSON.stringify(paramData)};
-        }
-        return authFetch("/power_service/v1/site/set_site_device_param", data);
-      },
-    };
-    const powerServices = {
-      app: powerServicesApp,
-      site: powerServicesSite,
-    }
-
-    const app = {
-      /**
-       * @returns {Promise<ResultResponse<UserMqttInfo>>}
-       */
-      getMqttInfo: () => authFetch("app/devicemanage/get_user_mqtt_info"),
-    }
+    const app = new SolixAppApi(authFetch);
+    const powerServices = new SolixPowerServicesApi(authFetch);
 
     return {
       powerServices,
       app,
       /**
-       * @deprecated use powerServices.app.getRelateAndBindDevices
+       * @deprecated use powerServices.getRelateAndBindDevices
        * @returns {Promise<ResultResponse<DeviceDataResponse>>}
        */
-      getRelateAndBindDevices: () => powerServices.app.getRelateAndBindDevices(),
+      getRelateAndBindDevices: () => powerServices.getRelateAndBindDevices(),
       /**
-       * @deprecated use powerServices.app.getUserDevices
+       * @deprecated use powerServices.getUserDevices
        * @returns {Promise<ResultResponse<UserMqttInfo>>}
        */
       getUserMqttInfo: () => app.getUserMqttInfo(),
       /**
-       * @deprecated use powerServices.site.siteHomepage
+       * @deprecated use powerServices.siteHomepage
        * @returns {Promise<ResultResponse<SiteHomepageResponse>>}
        */
-      siteHomepage: () => powerServices.site.siteHomepage(),
+      siteHomepage: () => powerServices.siteHomepage(),
       /**
-       * @deprecated use powerServices.site.getSiteList
+       * @deprecated use powerServices.getSiteList
        * @returns {Promise<ResultResponse<SiteListResponse>>}
        */
-      getSiteList: () => powerServices.site.getSiteList(),
+      getSiteList: () => powerServices.getSiteList(),
       /**
-       * @deprecated use powerServices.site.getSiteDetail
+       * @deprecated use powerServices.getSiteDetail
        * @param {{ siteId: string, deviceSn?: string }} params
        * @returns {Promise<ResultResponse<HomeLoadChartResponse>>}
        */
-      getHomeLoadChart: ({siteId, ...params}) => powerServices.site.getHomeLoadChart(siteId, params),
+      getHomeLoadChart: ({siteId, ...params}) => powerServices.getHomeLoadChart(siteId, params),
       /**
-       * @deprecated use powerServices.site.scenInfo
+       * @deprecated use powerServices.scenInfo
        * @param {string} siteId
        * @returns {Promise<ResultResponse<ScenInfo>>}
        */
-      scenInfo: (siteId) => powerServices.site.scenInfo(siteId),
+      scenInfo: (siteId) => powerServices.scenInfo(siteId),
       /**
-       * @deprecated use powerServices.site.energyAnalysis
+       * @deprecated use powerServices.energyAnalysis
        * @param {{ siteId: string, deviceSn: string, type: string, startTime?: Date, endTime?: Date, deviceType?: string }} params
        * @returns {Promise<ResultResponse<EnergyAnalysis>>}
        */
       energyAnalysis: ({
                          siteId,
                          ...params
-                       }) => powerServices.site.energyAnalysis(siteId, params),
+                       }) => powerServices.energyAnalysis(siteId, params),
       /**
        * @param {{ paramType: ParamType | string, siteId: string }} params
        * @returns {Promise<ResultResponse<SiteDeviceParamResponse>>}
        */
-      getSiteDeviceParam: async ({siteId, ...params}) => powerServices.site.getSiteDeviceParam(siteId, params),
+      getSiteDeviceParam: async ({siteId, ...params}) => powerServices.getSiteDeviceParam(siteId, params),
       /**
-       * @deprecated use powerServices.site.setSiteDeviceParam
+       * @deprecated use powerServices.setSiteDeviceParam
        * @param {{ paramType: ParamType | string, siteId: string, cmd?: number, paramData: any }} params
        * @returns {Promise<ResultResponse<any>>}
        */
-      setSiteDeviceParam: ({siteId, ...params}) => powerServices.site.setSiteDeviceParam(siteId, params),
+      setSiteDeviceParam: ({siteId, ...params}) => powerServices.setSiteDeviceParam(siteId, params),
     };
   }
 
@@ -536,6 +413,267 @@ class SolixApi {
     });
 
     return this.fetch("/passport/login", data);
+  }
+}
+
+class SolixAppApi {
+  /** @type {AuthenticatedFetch} */
+  #authFetch;
+
+  /**
+   * @param {AuthenticatedFetch} authFetch
+   */
+  constructor(authFetch) {
+    this.#authFetch = authFetch
+  }
+
+  /**
+   * @returns {Promise<ResultResponse<UserMqttInfo>>}
+   */
+  getUserMqttInfo() {
+    return this.#authFetch("app/devicemanage/get_user_mqtt_info")
+  }
+}
+
+class SolixPowerServicesApi {
+  /** @type {AuthenticatedFetch} */
+  #authFetch;
+
+  /**
+   * @param {AuthenticatedFetch} authFetch
+   */
+  constructor(authFetch) {
+    this.#authFetch = authFetch
+  }
+
+
+  /**
+   * @returns {Promise<ResultResponse<DeviceDataResponse>>}
+   */
+  getRelateAndBindDevices() {
+    return this.#authFetch("/power_service/v1/app/get_relate_and_bind_devices");
+  }
+
+  getUserDevices() {
+    return this.#authFetch("/power_service/v1/site/list_user_devices");
+  }
+
+  getChargingDevices() {
+    return this.#authFetch("/power_service/v1/site/get_charging_device");
+  }
+
+  getAutoUpgrade() {
+    return this.#authFetch("/power_service/v1/app/get_auto_upgrade");
+  }
+
+  setAutoUpgrade(params) {
+    return this.#authFetch("/power_service/v1/app/set_auto_upgrade", params);
+  }
+
+  getDeviceLoad() {
+    return this.#authFetch("/power_service/v1/app/device/get_device_home_load");
+  }
+
+  setDeviceLoad(params) {
+    return this.#authFetch("/power_service/v1/app/device/set_device_home_load", params);
+  }
+
+  getOtaBatch(deviceSnList) {
+    return this.#authFetch("app/ota/batch/check_update", {device_sn_list: deviceSnList});
+  }
+
+  getOtaInfo(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_ota_info", params);
+  }
+
+  getOtaUpdate(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_ota_update", params);
+  }
+
+  solarInfo(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_solar_info", params);
+  }
+
+  getCutoff(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_power_cutoff", params);
+  }
+
+  setCutoff(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/set_power_cutoff", params);
+  }
+
+  compatibleProcess(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_process", params);
+  }
+
+  getDeviceFittings(params) {
+    return this.#authFetch("/power_service/v1/app/get_relate_device_fittings", params);
+  }
+
+  getUpgradeRecord() {
+    return this.#authFetch("/power_service/v1/app/get_upgrade_record");
+  }
+
+  checkUpgradeRecord(params) {
+    return this.#authFetch("/power_service/v1/app/check_upgrade_record", params);
+  }
+
+  getMessageUnread() {
+    return this.#authFetch("/power_service/v1/get_message_unread");
+  }
+
+  getMessage(params) {
+    return this.#authFetch("/power_service/v1/get_message", params);
+  }
+
+  getProductCategories() {
+    return this.#authFetch("/power_service/v1/product_categories");
+  }
+
+  getProductAccessories() {
+    return this.#authFetch("/power_service/v1/product_accessories");
+  }
+
+  getDeviceAttributes() {
+    return this.#authFetch("/power_service/v1/app/device/get_device_attrs");
+  }
+
+  getConfig() {
+    return this.#authFetch("/power_service/v1/app/get_config");
+  }
+
+  getInstallation() {
+    return this.#authFetch("/power_service/v1/app/compatible/get_installation");
+  }
+
+  setInstallation(params) {
+    return this.#authFetch("/power_service/v1/app/compatible/set_installation", params);
+  }
+
+  getThirdPlatforms() {
+    return this.#authFetch("/power_service/v1/app/third/platform/list");
+  }
+
+  getTokenByUserId(userId) {
+    return this.#authFetch("/power_service/v1/app/get_token_by_userid", {user_id: userId});
+  }
+
+  getShellyStatus(params) {
+    return this.#authFetch("/power_service/v1/app/get_user_op_shelly_status", params);
+  }
+
+  /**
+   * @returns {Promise<ResultResponse<SiteHomepageResponse>>}
+   */
+  siteHomepage() {
+    return this.#authFetch("/power_service/v1/site/get_site_homepage");
+  }
+
+  getWifiInfoList(siteId) {
+    return this.#authFetch("/power_service/v1/site/get_wifi_info_list", {site_id: siteId});
+  }
+
+  getSitePrice(siteId) {
+    return this.#authFetch("/power_service/v1/site/get_site_price", {site_id: siteId});
+  }
+
+  updateSitePrice(siteId, params) {
+    return this.#authFetch("/power_service/v1/site/update_site_price", {
+      ...params,
+      site_id: siteId
+    });
+  }
+
+  /**
+   * @returns {Promise<ResultResponse<SiteListResponse>>}
+   */
+  getSiteList() {
+    return this.#authFetch("/power_service/v1/site/get_site_list");
+  }
+
+  getSiteDetail(siteId) {
+    return this.#authFetch("/power_service/v1/site/get_site_detail", {site_id: siteId});
+  }
+
+  getSiteRules(siteId) {
+    return this.#authFetch("/power_service/v1/site/get_site_rules", {site_id: siteId});
+  }
+
+  /**
+   * @param {string} siteId
+   * @param {{ deviceSn?: string }} [params]
+   * @returns {Promise<ResultResponse<HomeLoadChartResponse>>}
+   */
+  getHomeLoadChart(siteId, {deviceSn} = {}) {
+    return this.#authFetch("/power_service/v1/site/get_home_load_chart", {
+      site_id: siteId,
+      device_sn: deviceSn
+    });
+  }
+
+  /**
+   * @param {string} siteId
+   * @returns {Promise<ResultResponse<ScenInfo>>}
+   */
+  scenInfo(siteId) {
+    return this.#authFetch("/power_service/v1/site/get_scen_info", {site_id: siteId});
+  }
+
+  /**
+   * @param {string} siteId
+   * @param {{ deviceSn: string, type: string, startTime?: Date, endTime?: Date, deviceType?: string }} params
+   * @returns {Promise<ResultResponse<EnergyAnalysis>>}
+   */
+  energyAnalysis(siteId, {
+    deviceSn,
+    type,
+    startTime = new Date(),
+    endTime,
+    deviceType = "solar_production"
+  }) {
+    const startTimeString = `${startTime.getUTCFullYear()}-${this.pad(startTime.getUTCMonth())}-${this.pad(startTime.getUTCDate())}`;
+    const endTimeString = endTime ? `${endTime.getUTCFullYear()}-${this.pad(endTime.getUTCMonth())}-${this.pad(endTime.getUTCDate())}` : "";
+    const data = {
+      site_id: siteId,
+      device_sn: deviceSn,
+      type,
+      start_time: startTimeString,
+      device_type: deviceType,
+      end_time: endTimeString,
+    };
+    return this.#authFetch("/power_service/v1/site/energy_analysis", data);
+  }
+
+  /**
+   * @param {string} siteId
+   * @param {{ paramType: ParamType | string }} params
+   * @returns {Promise<ResultResponse<SiteDeviceParamResponse>>}
+   */
+  async getSiteDeviceParam(siteId, {paramType}) {
+    const data = {site_id: siteId, param_type: paramType};
+    const response = await this.#authFetch("/power_service/v1/site/get_site_device_param", data);
+    if (response.data) {
+      switch (paramType) {
+        case ParamType.LoadConfiguration:
+          return {...response, data: {param_data: JSON.parse(response?.data?.param_data)}};
+        default:
+          return response;
+      }
+    }
+    return response;
+  }
+
+  /**
+   * @param {string} siteId
+   * @param {{ paramType: ParamType | string, cmd?: number, paramData: any }} params
+   * @returns {Promise<ResultResponse<any>>}
+   */
+  setSiteDeviceParam(siteId, {paramType, cmd = 17, paramData}) {
+    let data = {site_id: siteId, param_type: paramType, cmd, param_data: paramData};
+    if (paramType === ParamType.LoadConfiguration) {
+      data = {...data, param_data: JSON.stringify(paramData)};
+    }
+    return this.#authFetch("/power_service/v1/site/set_site_device_param", data);
   }
 }
 
