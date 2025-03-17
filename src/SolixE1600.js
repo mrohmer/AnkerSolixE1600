@@ -79,7 +79,7 @@ class SolixE1600 extends Emitter {
   /**
    * Initializes the instance
    *
-   * @return {Promise<void>}
+   * @return {Promise<boolean>}
    */
   async init() {
     const {token, fetched: tokenFetched} = await this.#getLoginCredentials();
@@ -89,7 +89,9 @@ class SolixE1600 extends Emitter {
 
     if (tokenFetched || sessionFetched) {
       this.emit('initialized', this.getSessionConfiguration());
+      return true;
     }
+    return false;
   }
 
   /**
@@ -217,6 +219,21 @@ class SolixE1600 extends Emitter {
       const result = await this.apiSession.getHomeLoadChart(device);
 
       return result?.data;
+    });
+  }
+
+  /**
+   * @template T
+   * @param {'app'|'poerServices'} scope any of ['app', 'powerServices']
+   * @param {string} method any of the available methods in the scope
+   * @param {any[]} [args] arguments to pass to the method
+   * @return {Promise<T>}
+   */
+  raw(scope, method, args = undefined) {
+    return this.#wrap(async () => {
+      await this.init();
+
+      return this.apiSession[scope][method](...(args ?? []));
     });
   }
 

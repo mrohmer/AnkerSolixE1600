@@ -187,6 +187,77 @@ const HttpError = require("./HttpError");
  */
 
 /**
+ * @typedef {Object} SolarInfo
+ * @property {string} brand_id
+ * @property {string} solar_brand
+ * @property {string} solar_model
+ * @property {string} solar_sn
+ * @property {string} solar_model_name
+ */
+
+/**
+ * @typedef {Object} CompatibleProcess
+ * @property {number} ota_complete_status
+ * @property {number} process_skip_type
+ * @property {SolarInfo} solar_info
+ */
+
+/**
+ * @typedef {Object} CutoffData
+ * @property {number} id
+ * @property {number} is_selected
+ * @property {number} output_cutoff_data
+ * @property {number} lowpower_input_data
+ * @property {number} input_cutoff_data
+ */
+
+/**
+ * @typedef {Object} Cutoff
+ * @property {CutoffData[]} power_cutoff_data
+ */
+
+/**
+ * @typedef {Object} SitePrice
+ * @property {string} site_id
+ * @property {number} price
+ * @property {number} site_co2
+ * @property {string} site_price_unit
+ */
+
+
+/**
+ * @typedef {Object} DeviceFitting
+ * @property {string} device_sn
+ * @property {string} product_code
+ * @property {string} device_name
+ * @property {string} alias_name
+ * @property {string} img_url
+ * @property {string} bt_ble_id
+ * @property {string} bt_ble_mac
+ * @property {number} link_time
+ */
+/**
+ * @typedef {Object} DeviceFittings
+ * @property {DeviceFitting[]} data
+ */
+
+/**
+ * @typedef {Object} OtaInfo
+ * @property {number} ota_status
+ * @property {string} current_verion
+ * @property {number} timestamp
+ * @property {number} version_type
+ */
+
+/**
+ * @typedef {Object} OtaUpdate
+ * @property {boolean} is_ota_update
+ * @property {boolean} need_retry
+ * @property {number} retry_interval
+ * @property {any} device_list
+ */
+
+/**
  * @typedef {Object} TrustDevice
  * @property {string} open_udid
  * @property {string} phone_model
@@ -479,35 +550,71 @@ class SolixPowerServicesApi {
   }
 
   getOtaBatch(deviceSnList) {
-    return this.#authFetch("app/ota/batch/check_update", {device_sn_list: deviceSnList});
+    return this.#authFetch("app/ota/batch/check_update", {device_list: deviceSnList});
   }
 
-  getOtaInfo(params) {
-    return this.#authFetch("/power_service/v1/app/compatible/get_ota_info", params);
+  /**
+   * Get the solar ota info that is configured for a solarbank
+   *
+   * @param {string} solarbankSn
+   * @return {Promise<ResultResponse<OtaInfo>>}
+   */
+  getOtaInfo(solarbankSn) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_ota_info", {solar_bank_sn: solarbankSn, solar_sn: ""});
   }
 
-  getOtaUpdate(params) {
-    return this.#authFetch("/power_service/v1/app/compatible/get_ota_update", params);
+  /**
+   * Get the solar ota update info that is configured for a solarbank
+   *
+   * @param {string} solarbankSn
+   * @return {Promise<ResultResponse<OtaUpdate>>}
+   */
+  getOtaUpdate(solarbankSn) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_ota_update", {device_sn: solarbankSn, insert_sn: ""});
   }
 
-  solarInfo(params) {
-    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_solar_info", params);
+  /**
+   * Get the solar info that is configured for a solarbank
+   *
+   * @param {string} solarbankSn
+   * @return {Promise<ResultResponse<SolarInfo>>}
+   */
+  solarInfo(solarbankSn) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_solar_info", {solarbank_sn: solarbankSn});
   }
 
-  getCutoff(params) {
-    return this.#authFetch("/power_service/v1/app/compatible/get_power_cutoff", params);
+  /**
+   * Get the solar info and OTA processing info for a solarbank.
+   *
+   * @param {string} siteId
+   * @param {string} deviceSn
+   * @return {Promise<ResultResponse<Cutoff>>}
+   */
+  getCutoff(siteId, deviceSn) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_power_cutoff", {site_id: siteId, device_sn: deviceSn});
   }
 
   setCutoff(params) {
     return this.#authFetch("/power_service/v1/app/compatible/set_power_cutoff", params);
   }
 
-  compatibleProcess(params) {
-    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_process", params);
+  /**
+   * Get the solar info and OTA processing info for a solarbank.
+   *
+   * @param {string} solarbankSn
+   * @return {Promise<ResultResponse<CompatibleProcess>>}
+   */
+  compatibleProcess(solarbankSn) {
+    return this.#authFetch("/power_service/v1/app/compatible/get_compatible_process", {solarbank_sn: solarbankSn});
   }
 
-  getDeviceFittings(params) {
-    return this.#authFetch("/power_service/v1/app/get_relate_device_fittings", params);
+  /**
+   * @param {string} siteId
+   * @param {string} deviceSn
+   * @return {Promise<ResultResponse<T>>}
+   */
+  getDeviceFittings(siteId, deviceSn) {
+    return this.#authFetch("/power_service/v1/app/get_relate_device_fittings", {site_id: siteId, device_sn: deviceSn});
   }
 
   getUpgradeRecord() {
@@ -573,6 +680,10 @@ class SolixPowerServicesApi {
     return this.#authFetch("/power_service/v1/site/get_wifi_info_list", {site_id: siteId});
   }
 
+  /**
+   * @param {string} siteId
+   * @return {Promise<ResultResponse<SitePrice>>}
+   */
   getSitePrice(siteId) {
     return this.#authFetch("/power_service/v1/site/get_site_price", {site_id: siteId});
   }
@@ -676,5 +787,8 @@ class SolixPowerServicesApi {
     return this.#authFetch("/power_service/v1/site/set_site_device_param", data);
   }
 }
+
+SolixApi.App = SolixAppApi;
+SolixApi.PowerServices = SolixPowerServicesApi;
 
 module.exports = SolixApi;
