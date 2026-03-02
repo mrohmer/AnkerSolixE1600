@@ -224,7 +224,7 @@ class SolixE1600 extends Emitter {
 
   /**
    * @template T
-   * @param {'app'|'poerServices'} scope any of ['app', 'powerServices']
+   * @param {'app'|'powerServices'|'chargingPvSvc'} scope any of ['app', 'powerServices']
    * @param {string} method any of the available methods in the scope
    * @param {any[]} [args] arguments to pass to the method
    * @return {Promise<T>}
