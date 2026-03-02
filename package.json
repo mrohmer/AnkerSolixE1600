@@ -30,7 +30,8 @@
       "SolixApi": "node-red/nodes/api/index.js",
       "Solix | Set Schedule": "node-red/nodes/set-schedule/index.js",
       "Solix | Read Scen Info": "node-red/nodes/read-scen-info/index.js",
-      "Solix | Read Home Load Chart": "node-red/nodes/read-home-load-chart/index.js"
+      "Solix | Read Home Load Chart": "node-red/nodes/read-home-load-chart/index.js",
+      "Solix | Read Energy Analysis": "node-red/nodes/read-energy-analysis/index.js"
     }
   },
   "engines": {

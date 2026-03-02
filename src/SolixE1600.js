@@ -97,10 +97,10 @@ class SolixE1600 extends Emitter {
   /**
    * Retrieves the site ID for a given site.
    *
-   * @param {string|number} siteId - The site ID or name.
+   * @param {string|number|undefined} siteId - The site ID or name.
    * @return {Promise<string>} The site ID.
    */
-  async #getSiteId(siteId) {
+  async getSiteId(siteId = undefined) {
     const sites = await this.#internalGetSites();
     if (!sites?.length) {
       return undefined;
@@ -161,7 +161,7 @@ class SolixE1600 extends Emitter {
     return this.#wrap(async () => {
       await this.init();
       const device = {
-        siteId: siteId ?? await this.#getSiteId(siteId),
+        siteId: siteId ?? await this.getSiteId(siteId),
         paramType: "4"
       }
 
@@ -180,7 +180,7 @@ class SolixE1600 extends Emitter {
   getScenInfo(siteId = undefined) {
     return this.#wrap(async () => {
       await this.init();
-      const deviceParams = await this.apiSession.scenInfo(siteId ?? await this.#getSiteId(siteId));
+      const deviceParams = await this.apiSession.scenInfo(siteId ?? await this.getSiteId(siteId));
       return deviceParams.data;
     });
   }
@@ -197,7 +197,7 @@ class SolixE1600 extends Emitter {
     return this.#wrap(async () => {
       await this.init();
       const deviceN = {
-        siteId: siteId ?? await this.#getSiteId(siteId),
+        siteId: siteId ?? await this.getSiteId(siteId),
         paramType: "4",
         cmd: 17,
         paramData: schedule
@@ -214,7 +214,7 @@ class SolixE1600 extends Emitter {
     return this.#wrap(async () => {
       await this.init();
       const device = {
-        siteId: siteId ?? await this.#getSiteId(siteId),
+        siteId: siteId ?? await this.getSiteId(siteId),
       }
       const result = await this.apiSession.getHomeLoadChart(device);
 
